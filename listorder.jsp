@@ -12,15 +12,26 @@
 
 <%
 // Note: Forces loading of SQL Server driver 
-try {
-    // Load driver class
-    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
-    // 1. make connection 
-    String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
-    String uid = "testuser";
-    String pw = "304testpw";
-    Connection connection = DriverManager.getConnection(url, uid, pw);
+// Initialize Variables
+String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
+String uid = "sa";
+String pw = "304#sa#pw";
+
+// Load driver class
+        
+try {	
+	Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+}
+
+catch (java.lang.ClassNotFoundException e) {
+	System.err.println("ClassNotFoundException: " +e);
+	System.exit(1);
+}
+
+// 1. Connect to server
+
+try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 
     // 2. query to retrieve all summary records
     String orderQuery = "SELECT * FROM ordersummary";
@@ -31,7 +42,7 @@ try {
 
     // Useful code for formatting currency values:
     // NumberFormat currFormat = NumberFormat.getCurrencyInstance();
-    // out.println(currFormat.format(5.0);  // Prints $5.00
+    // out.println(currFormat.format(5.0));  // Prints $5.00
 
     while (orderResultSet.next()) {
         // a. print out the order summary information
@@ -85,22 +96,15 @@ try {
         customerResultSet.close();
         customerStatement.close();
     }
-
-} catch (java.lang.ClassNotFoundException e) {
-    out.println("ClassNotFoundException: " + e);
-} catch (SQLException e) {
+} 
+catch (SQLException e) {
     // Handle SQLException if necessary
     out.println("SQLException: " + e);
-} finally {
-    // Close orderResultSet, orderStatement, and connection
-    if (orderResultSet != null) orderResultSet.close();
-    if (orderStatement != null) orderStatement.close();
-    if (connection != null) connection.close();
-}
+} 
 
 // Useful code for formatting currency values:
 // NumberFormat currFormat = NumberFormat.getCurrencyInstance();
-// out.println(currFormat.format(5.0);  // Prints $5.00
+// out.println(currFormat.format(5.0));  // Prints $5.00
 
 %>
 
