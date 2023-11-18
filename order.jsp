@@ -18,21 +18,32 @@ String custId = request.getParameter("customerId");
 @SuppressWarnings({"unchecked"})
 HashMap<String, ArrayList<Object>> productList = (HashMap<String, ArrayList<Object>>) session.getAttribute("productList");
 
-// Determine if valid customer id was entered
-// Determine if there are products in the shopping cart
-// If either are not true, display an error message
+// Check if valid customer id was entered or if there are products in the shopping cart
 if (custId != null && productList != null && !productList.isEmpty()) {
     Connection connection = null;
     PreparedStatement orderStmt = null;
     PreparedStatement productStmt = null;
+}
 
+// Initialize Variables
+String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
+String uid = "sa";
+String pw = "304#sa#pw";
 
-try{
-	// 1. Make connection
-	String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
-	String uid = "testuser";
-	String pw = "304testpw";
-	connection = DriverManager.getConnection(url, uid, pw);
+// Load driver class
+        
+try {	
+	Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+}
+
+catch (java.lang.ClassNotFoundException e) {
+	System.err.println("ClassNotFoundException: " +e);
+	System.exit(1);
+}
+
+// 1. Connect to server
+
+try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 
 	// 2. Save order information to the database
 	String orderInsertQuery = "INSERT INTO orderSummary (customerId, orderDate, totalAmount) VALUES (?, GETDATE(), ?)";
@@ -102,15 +113,19 @@ try{
 			// 6. Clear cart if the order is placed successfully
 			session.removeAttribute("productList");
 		}
-	} else {
+	} 
+	else {
 		// Handle where the order insertion failed
 		out.println("<p>Error placing order</p>");
 	}
+} 
 
-} catch (ClassNotFoundException | SQLException e) {
+catch (ClassNotFoundException | SQLException e) {
 	// Handle exceptions
 	out.println("<p>Error: " + e.getMessage() + "</p>");
-} finally {
+} 
+
+finally {
 	// close everything
 	if (productStmt != null) {
 		try {
@@ -126,16 +141,9 @@ try{
 			e.printStackTrace();
 		}
 	}
-	if (connection != null) {
-		try {
-			connection.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
 }
 
-} else {
+else {
 // error message if customer id or shopping cart is invalid
 out.println("<p>Error: Invalid customer id or no items in the shopping cart</p>");
 }
@@ -170,4 +178,3 @@ out.println("<p>Error: Invalid customer id or no items in the shopping cart</p>"
 
 </BODY>
 </HTML>
-
