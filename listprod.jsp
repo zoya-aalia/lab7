@@ -15,22 +15,33 @@
 <input type="submit" value="Submit"><input type="reset" value="Reset"> (Leave blank for all products)
 </form>
 
+<% 
 // Variable name now contains the search string the user entered
 // Use it to build a query and print out the resultset.  Make sure to use PreparedStatement!
-
-<% // Get product name to search for
+// Get product name to search for
 String name = request.getParameter("productName");
 		
 //Note: Forces loading of SQL Server driver
-try
-{	// Load driver class
-	Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
-	// 1. make connection 
-    String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
-    String uid = "testuser";
-    String pw = "304testpw";
-    Connection connection = DriverManager.getConnection(url, uid, pw);
+// Initialize Variables
+String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
+String uid = "sa";
+String pw = "304#sa#pw";
+
+// Load driver class
+        
+try {	
+	Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+}
+
+catch (java.lang.ClassNotFoundException e) {
+	System.err.println("ClassNotFoundException: " +e);
+	System.exit(1);
+}
+
+// 1. Connect to server
+
+try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 
 	// a. query to retrieve all products
 	String productQuery = "SELECT * FROM products WHERE productName LIKE ?";
@@ -57,16 +68,15 @@ try
 	productResultSet.close();
 	productStatement.close();
 	connection.close();
-
 }
-catch (java.lang.ClassNotFoundException e)
-{
-	out.println("ClassNotFoundException: " +e);
+
+catch (SQLException ex) {
+	System.err.println("SQLException: " + ex);
 }
 
 // Useful code for formatting currency values:
 // NumberFormat currFormat = NumberFormat.getCurrencyInstance();
-// out.println(currFormat.format(5.0);	// Prints $5.00
+// out.println(currFormat.format(5.0));	// Prints $5.00
 %>
 
 </body>
