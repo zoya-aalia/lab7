@@ -7,29 +7,29 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF8"%>
 <!DOCTYPE html>
 <html>
+	<nav style="padding:1px">
+		<h1>A & Z's Grocery</h1>
+	</nav>
+	<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
+			<a href="shop.html" style="margin-left:20px; color:antiquewhite">Home </a>
+			<a href="listprod.jsp" style="margin-left:20px; color:antiquewhite">Products</a>
+			<a href="listorder.jsp" style="margin-left:20px; color:antiquewhite">Orders</a>
+			<a href="showcart.jsp" style="margin-left:20px; color:antiquewhite">My Cart</a>
+	</div>
+	<style>
+			h1 {color:#1baa82;}
+			h2 {color:black;}
+			a {color:#769d6d}
+	</style>
 <head>
-    <title>A & Z's Grocery Order Processing</title>
-    <style>
-        h1 {color:#1baa82;}
-        h2 {color:black;}
-        a {color:antiquewhite}
-    </style>
+<title>A & Z's Grocery Order Processing</title>
 </head>
 <body>
-
-<nav style="padding:1px">
-    <h1>A & Z's Grocery</h1>
-</nav>
-<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
-    <a href="shop.html" style="margin-left:20px">Home </a>
-    <a href="listprod.jsp" style="margin-left:20px">Products</a>
-    <a href="listorder.jsp" style="margin-left:20px">Orders</a>
-    <a href="showcart.jsp" style="margin-left:20px">My Cart</a>
-</div>
 
 <% 
 // Get customer id
 String custId = request.getParameter("customerId");
+String password = request.getParameter("password");
 @SuppressWarnings({"unchecked"})
 HashMap<String, ArrayList<Object>> productList = (HashMap<String, ArrayList<Object>>) session.getAttribute("productList");
 
@@ -52,34 +52,37 @@ if (custId != null && productList != null && !productList.isEmpty()) {
     // Initialize orderId
     int orderId = 0;
 
-    // 1. Connect to server
+    //Connect to server
     try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 
         // Begin transaction
         connection.setAutoCommit(false);
 
         try {
-            String checkIdQuery = "SELECT firstName, lastName FROM customer WHERE customerId = ?";
+            //Verify customer id is connected to a user
+            String checkIdQuery = "SELECT firstName, lastName, password FROM customer WHERE customerId = ?";
             PreparedStatement checkIdStatement = connection.prepareStatement(checkIdQuery);
             checkIdStatement.setString(1, custId);
             ResultSet checkIdResultSet = checkIdStatement.executeQuery();
 
             String first = "";
             String last = "";
+            String pass = "";
 
             while (checkIdResultSet.next()) {
                 first = checkIdResultSet.getString("firstName");
                 last = checkIdResultSet.getString("lastName");
+                pass = checkIdResultSet.getString("password");
             }
 
-            if (!first.isEmpty() && !last.isEmpty()) {
+            if (!first.isEmpty() && !last.isEmpty() && pass.equals(password)) {
 
-                // 2. Save order information to the database
+                //Save order info to db
                 String orderInsertQuery = "INSERT INTO orderSummary (customerId, orderDate, totalAmount) VALUES (?, GETDATE(), ?)";
                 PreparedStatement orderStmt = connection.prepareStatement(orderInsertQuery, Statement.RETURN_GENERATED_KEYS);
                 orderStmt.setInt(1, Integer.parseInt(custId));
 
-                // Calculate total amount
+                //Calculate total amount
                 double totalAmount = 0;
                 Iterator<Map.Entry<String, ArrayList<Object>>> iterator = productList.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -93,18 +96,18 @@ if (custId != null && productList != null && !productList.isEmpty()) {
                     totalAmount += quantity * Double.parseDouble(price);
                 }
 
-                // Set total amount in orderSummary
+                //Set total amount in orderSummary
                 orderStmt.setDouble(2, totalAmount);
 
-                // Execute order statement
+                //Execute order statement
                 orderStmt.executeUpdate();
 
-                // 3. Retrieve auto-generated order id
+                //Retrieve auto-generated order id
                 ResultSet generatedKeys = orderStmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     orderId = generatedKeys.getInt(1);
 
-                    // Insert each item into OrderProduct table using OrderId from the previous INSERT
+                    //Insert items into orderProduct table
                     Iterator<Map.Entry<String, ArrayList<Object>>> productIterator = productList.entrySet().iterator();
                     while (productIterator.hasNext()) {
                         Map.Entry<String, ArrayList<Object>> entry = productIterator.next();
@@ -113,24 +116,21 @@ if (custId != null && productList != null && !productList.isEmpty()) {
                         String price = (String) product.get(2);
 					    int quantity = (Integer) product.get(3);
 
-                        // Insert product into OrderProduct table
+                        //Insert product into orderProduct
                         String productInsertQuery = "INSERT INTO orderProduct (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)";
                         PreparedStatement productStmt = connection.prepareStatement(productInsertQuery);
 
-                        // Set parameters for product statement
+                        //Set parameters for product statement
                         productStmt.setInt(1, orderId);
                         productStmt.setInt(2, Integer.parseInt(productId));
                         productStmt.setInt(3, quantity);
                         productStmt.setDouble(4, Double.parseDouble(price));
-
-                        // Execute product statement
                         productStmt.executeUpdate();
                     }
 
-                    // Commit the transaction
                     connection.commit();
 
-                    // 4. Print out order summary
+                    //Print order summary
 				    out.println("<h2>Your Order Summary</h2>");
                     out.println("<table><th>Product Id</th>");
 				    out.println("<th>Product Name</th>");
@@ -156,27 +156,29 @@ if (custId != null && productList != null && !productList.isEmpty()) {
 				    out.println("<h2>Your order reference number is: " + orderId + "</h2>");
 				    out.println("<h2>Shipping to Customer: " + custId + ", Name: " + first + " " + last + "</h2>");
 
-                    // 5. Clear cart if the order is placed successfully
-                    session.removeAttribute("productList");
+                    out.println("<h2><a href='ship.jsp?orderId=" + orderId + "' style='color:#769d6d'>Continue to Shipment</a></h2>");
                 }
             }
             else {
-                // Error message if customer id not in database
-                out.println("<p>Error: Customer id does not exist</p>");
+                //Error message if customer id not in database
+                out.println("<p>Error: Incorrect Customer id or Password</p>");
             } 
-        } catch (SQLException e) {
-            // Rollback the transaction in case of an error
+        } 
+        catch (SQLException e) {
+            //Rollback transaction in case of error
             connection.rollback();
             throw e;
-        } finally {
-            // Reset auto-commit to true
+        } 
+        finally {
             connection.setAutoCommit(true);
         }
-    } catch (SQLException e) {
-        // Handle exceptions
+    } 
+    catch (SQLException e) {
+        //Handle exceptions
         out.println("<p>Error: " + e.getMessage() + "</p>");
     } 
-} else {
+} 
+else {
     // Error message if customer id or shopping cart is invalid
     out.println("<p>Error: Invalid customer id or no items in the shopping cart</p>");
 }
