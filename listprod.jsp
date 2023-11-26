@@ -74,11 +74,16 @@ try (Connection connection = DriverManager.getConnection(url, uid, pw); Statemen
 			String productName = productResultSet.getString("productName");
 			double productPrice = productResultSet.getDouble("productPrice");
 
-			// 3. For each product create a link of the form
+			// 3. For each product create addCart link
 			// addcart.jsp?id=productId&name=productName&price=productPrice
 			out.println("<p><a href='addcart.jsp?id=" + productId +
 				"&name=" + URLEncoder.encode(productName, "UTF-8") +
 				"&price=" + productPrice + "'>" + productName + "</a></p>");
+			
+			// 4. For each product create a Product link
+            		// product.jsp?id=productId&name=productName&price=productPrice
+            		out.println("<tr><td><a href='product.jsp?id=" + productId + "'>" + productName + "</a></td>");
+
 		}
 
 		// 4. Close connection
@@ -103,11 +108,16 @@ try (Connection connection = DriverManager.getConnection(url, uid, pw); Statemen
 			String productName = productResultSet.getString("productName");
 			double productPrice = productResultSet.getDouble("productPrice");
 
-			// 3. For each product create a link of the form
+			// 3. For each product create addCart link
 			// addcart.jsp?id=productId&name=productName&price=productPrice
-			out.println("<tr><td><a href='addcart.jsp?id=" + productId +
+			out.println("<p><a href='addcart.jsp?id=" + productId +
 				"&name=" + URLEncoder.encode(productName, "UTF-8") +
-				"&price=" + productPrice + "'>Add to Cart</a></td><td>" +productName+ "</td><td>" + NumberFormat.getCurrencyInstance().format(productPrice) + "</td></tr>");
+				"&price=" + productPrice + "'>" + productName + "</a></p>");
+			
+			// 4. For each product create a Product link
+            		// product.jsp?id=productId&name=productName&price=productPrice
+            		out.println("<tr><td><a href='product.jsp?id=" + productId + "'>" + productName + "</a></td>");
+		
 		}
 
 		out.println("</table>");
