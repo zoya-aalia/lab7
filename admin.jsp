@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
+<style>
+        h1 {color:#1baa82;}
+        h2 {color:black;}
+</style>
 <head>
 <title>Administrator Page</title>
 </head>
 <body>
 
-<%
-// TODO: Include files auth.jsp and jdbc.jsp
-<%@ include file="auth.jsp"%>
-<%@ include file="jdbc.jsp" %>
-%>
+<%@ page include file="auth.jsp"%>
+<%@ page include file="jdbc"%>
 
 <%
 
