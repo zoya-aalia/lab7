@@ -7,5 +7,4 @@
         session.setAttribute("loginMessage",loginMessage);        
 		response.sendRedirect("login.jsp");
 	}
-//did not change anything in this file
 %>
