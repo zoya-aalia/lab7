@@ -1,4 +1,6 @@
 <%@ page import="java.util.Base64" %>
+<%@ page import="java.net.URLEncoder" %>
+
 <%@ page import="java.sql.Blob" %>
 <%@ page import="java.io.InputStream" %>
 <%@ page import="java.io.ByteArrayOutputStream" %>
@@ -105,8 +107,22 @@ try {
             }
 
         // TODO: Add links to Add to Cart and Continue Shopping
-        out.println("<a href='addToCart.jsp?id=" + productIdValue + "'>Add to Cart;)</a>");
-        out.println("<a href='shopping.jsp'>Continue Shopping!</a>");
+        String addToCartLink;
+if (session.getAttribute("authenticatedUser") != null) {
+    addToCartLink = "addcart.jsp?logged=True&id=" + productIdValue +
+            "&name=" + URLEncoder.encode(productName, "UTF-8") +
+            "&price=" + productPrice;
+} else {
+    addToCartLink = "addcart.jsp?id=" + productIdValue +
+            "&name=" + URLEncoder.encode(productName, "UTF-8") +
+            "&price=" + productPrice;
+}
+
+// Link for Continue Shopping
+String continueShoppingLink = "listprod.jsp";
+
+out.println("<a href='" + addToCartLink + "'>Add to Cart;)</a>");
+out.println("<a href='" + continueShoppingLink + "'>Continue Shopping!</a>");
     } else {
         out.println("<p>Product not found :( sorry!</p>");
     }
