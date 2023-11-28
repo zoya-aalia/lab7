@@ -4,6 +4,22 @@
 <%@ include file="jdbc.jsp" %>
 
 <html>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
+<style>
+        h1 {color:#1baa82;}
+        h2 {color:black;}
+</style>
 <head>
 <title>Loading Data</title>
 </head>
@@ -44,7 +60,7 @@ try ( Connection con = DriverManager.getConnection(urlForLoadData, uid, pw); )
         if (command.contains("INSERT INTO ordersummary") && !command.contains("DECLARE @orderId"))
             command = "DECLARE @orderId int \n"+command;
 
-        // out.print(command+"<br>");        // Uncomment if want to see commands executed
+        out.print(command+"<br>");        // Uncomment if want to see commands executed
         try
         {
             stmt.execute(command);
