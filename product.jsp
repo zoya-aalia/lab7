@@ -1,4 +1,8 @@
 <%@ page import="java.util.Base64" %>
+<%@ page import="java.sql.Blob" %>
+<%@ page import="java.io.InputStream" %>
+<%@ page import="java.io.ByteArrayOutputStream" %>
+
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.text.NumberFormat" %>
@@ -58,26 +62,43 @@ try {
 
         
         // Display product info
-        out.println("<h1>" + productName + "</h1>");
-        out.println("<p>" + productDesc + "</p>");
-        out.println("<p>Price: " + NumberFormat.getCurrencyInstance().format(productPrice) + "</p>");
-        /* TODO: If there is a productImageURL, display using IMG tag */
-        if (productImageURL != null && !productImageURL.isEmpty()) {
-            out.println("<img src='" + productImageURL + "' alt='Product Image'>");
-        } else {
-            /* TODO: Retrieve any image stored directly in the database. Note: Call displayImage.jsp with product id as a parameter. */
-            String sqlImage = "SELECT productImage FROM Product WHERE productId = ?";
+            out.println("<h1>" + productName + "</h1>");
+            out.println("<p>" + productDesc + "</p>");
+            out.println("<p>Price: " + NumberFormat.getCurrencyInstance().format(productPrice) + "</p>");
+            /* TODO: If there is a productImageURL, display using IMG tag */
+            if (productImageURL != null && !productImageURL.isEmpty()) {
+                out.println("<img src='" + productImageURL + "' alt='Product Image'>");
+            } else {
+                /* TODO: Retrieve any image stored directly in the database. Note: Call displayImage.jsp with the product id as a parameter. */
+                String sqlImage = "SELECT productImage FROM Product WHERE productId = ?";
                 try (PreparedStatement imageStatement = con.prepareStatement(sqlImage)) {
                     imageStatement.setInt(1, productIdValue);
                     ResultSet imageResultSet = imageStatement.executeQuery();
-
+                
+                    // Check if there is data in the result set
                     if (imageResultSet.next()) {
                         // Convert image to Base64
-                        byte[] imageData = imageResultSet.getBytes("productImage");
-                        String base64Image = Base64.getEncoder().encodeToString(imageData);
-                        String dataURL = "data:image/png;base64," + base64Image;
-                        out.println("<img src='" + dataURL + "' alt='Product Image'>");
+                        Blob imageDataBlob = imageResultSet.getBlob("productImage");
+                        if (imageDataBlob != null) {
+                            InputStream inputStream = imageDataBlob.getBinaryStream();
+                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                            byte[] buffer = new byte[4096];
+                            int bytesRead = -1;
+
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                outputStream.write(buffer, 0, bytesRead);
+                            }
+
+                            byte[] imageData = outputStream.toByteArray();
+                            String base64Image = Base64.getEncoder().encodeToString(imageData);
+                            String dataURL = "data:image/png;base64," + base64Image;
+                            out.println("<img src='" + dataURL + "' alt='Product Image'>");
+                        } else {
+                            // No image available
+                            out.println("<p>No image available, but we promise it's good!</p>");
+                        }
                     } else {
+                        // No image available
                         out.println("<p>No image available, but we promise it's good!</p>");
                     }
                 }
