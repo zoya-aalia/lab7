@@ -21,57 +21,63 @@ else {
 </head>
 <body>
 
-<%@ page include file="auth.jsp"%>
-<%@ page include file="jdbc"%>
+<%@ include file="auth.jsp"%>
+<%@ include file="jdbc.jsp"%>
 
 <%
 
-// TODO: Write SQL query that prints out total order amount by day
-String sql = "SELECT DATE(orderDate) AS orderDay, SUM(orderAmount) AS totalSales " +
-             "FROM orders " +
-             "GROUP BY DATE(orderDate)";
+// Initialize Variables
+String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
+String uid = "sa";
+String pw = "304#sa#pw";
 
-            try {
-                getConnection();
+// Load driver class    
+try {
+    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+} 
+catch (java.lang.ClassNotFoundException e) {
+    System.err.println("ClassNotFoundException: " + e);
+    System.exit(1);
+}
+
+try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
+
+    try {
+        //Write SQL query that prints out total order amount by day
+        String sql = "SELECT orderDate AS orderDay, SUM(totalAmount) AS totalSales FROM ordersummary GROUP BY orderDate";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet resultSet = preparedStatement.executeQuery();
         
-                try (PreparedStatement preparedStatement = con.prepareStatement(sql)) {
-                    ResultSet resultSet = preparedStatement.executeQuery();
+        //Display the report header
+        out.println("<h2>Total Sales Report</h2>");
+        out.println("<table border=\"1\">");
+        out.println("<tr><th>Order Day</th><th>Total Sales</th></tr>");
         
-                    // Display the report header
-                    out.println("<h2>Total Sales Report</h2>");
-                    out.println("<table border=\"1\">");
-                    out.println("<th>Order Day</th>");
-                    out.println("<th>Total Sales</th>");
+        //Display the results
+        while (resultSet.next()) {
+            String orderDay = resultSet.getString("orderDay");
+            double totalSales = resultSet.getDouble("totalSales");
+
         
-                    // Display the results
-                    while (resultSet.next()) {
-                        String orderDay = resultSet.getString("orderDay");
-                        double totalSales = resultSet.getDouble("totalSales");
+            out.println("<tr><td>" + orderDay + "</td>");
+            out.println("<td>" + totalSales + "</td></tr>");
+        }
         
-                        out.println("<tr>");
-                        out.println("<td>" + orderDay + "</td>");
-                        out.println("<td>" + totalSales + "</td>");
-                        out.println("</tr>");
-                    }
+        out.println("</table>");
         
-                    out.println("</table>");
+    } 
+    catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        closeConnection();
+    }
         
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } finally {
-                    closeConnection();
-                }
-        
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+} 
+catch (Exception e) {
+    e.printStackTrace();
+}
 
 %>
 
 </body>
 </html>
-
-/* +1 mark - for checking user is logged in before accessing page
-+2 marks - for displaying a report that list the total sales for each day. Hint: May need to use date functions like year, month, day.
-+1 mark - for displaying current user on main page (index.jsp/php)
-+2 marks - for modifying validateLogin to check correct user id and password */
