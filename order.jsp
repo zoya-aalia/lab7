@@ -7,20 +7,22 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF8"%>
 <!DOCTYPE html>
 <html>
-	<nav style="padding:1px">
-		<h1>A & Z's Grocery</h1>
-	</nav>
-	<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
-			<a href="shop.html" style="margin-left:20px; color:antiquewhite">Home </a>
-			<a href="listprod.jsp" style="margin-left:20px; color:antiquewhite">Products</a>
-			<a href="listorder.jsp" style="margin-left:20px; color:antiquewhite">Orders</a>
-			<a href="showcart.jsp" style="margin-left:20px; color:antiquewhite">My Cart</a>
-	</div>
-	<style>
-			h1 {color:#1baa82;}
-			h2 {color:black;}
-			a {color:#769d6d}
-	</style>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
+<style>
+        h1 {color:#1baa82;}
+        h2 {color:black;}
+</style>
 <head>
 <title>A & Z's Grocery Order Processing</title>
 </head>
@@ -34,7 +36,7 @@ String password = request.getParameter("password");
 HashMap<String, ArrayList<Object>> productList = (HashMap<String, ArrayList<Object>>) session.getAttribute("productList");
 
 // Check if valid customer id was entered and if there are products in the shopping cart
-if (custId != null && productList != null && !productList.isEmpty()) {
+if (custId != null && productList != null && password != null && !productList.isEmpty()) {
     
     // Initialize Variables
     String url = "jdbc:sqlserver://cosc304_sqlserver:1433;DatabaseName=orders;TrustServerCertificate=True";
@@ -59,7 +61,7 @@ if (custId != null && productList != null && !productList.isEmpty()) {
         connection.setAutoCommit(false);
 
         try {
-            //Verify customer id is connected to a user
+            //Verify customer id is connected to a user and that password matches
             String checkIdQuery = "SELECT firstName, lastName, password FROM customer WHERE customerId = ?";
             PreparedStatement checkIdStatement = connection.prepareStatement(checkIdQuery);
             checkIdStatement.setString(1, custId);
