@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html>
+<%@ include file="header.jsp"%>
+<style>
+        h1 {color:#1baa82;}
+        h2 {color:black;}
+</style>
 <head>
 <title>Login Screen</title>
 </head>
