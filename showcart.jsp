@@ -6,19 +6,21 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF8"%>
 <!DOCTYPE html>
 <html>
-<nav style="padding:1px">
-	<h1>A & Z's Grocery</h1>
-</nav>
-<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
-	<a href="shop.html" style="margin-left:20px">Home </a>
-	<a href="listprod.jsp" style="margin-left:20px">Products</a>
-	<a href="listorder.jsp" style="margin-left:20px">Orders</a>
-	<a href="showcart.jsp" style="margin-left:20px">My Cart</a>
-</div>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
 <style>
-	h1 {color:#1baa82;}
-	h2 {color:black;}
-	a {color:antiquewhite}
+        h1 {color:#1baa82;}
+        h2 {color:black;}
 </style>
 <head>
 <title>A & Z's Shopping Cart</title>
