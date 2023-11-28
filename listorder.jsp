@@ -3,19 +3,21 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF8"%>
 <!DOCTYPE html>
 <html>
-<nav style="padding:1px">
-    <h1>A & Z's Grocery</h1>
-</nav>
-<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
-        <a href="shop.html" style="margin-left:20px">Home </a>
-        <a href="listprod.jsp" style="margin-left:20px">Products</a>
-        <a href="listorder.jsp" style="margin-left:20px">Orders</a>
-        <a href="showcart.jsp" style="margin-left:20px">My Cart</a>
-</div>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
 <style>
         h1 {color:#1baa82;}
         h2 {color:black;}
-        a {color:antiquewhite}
 </style>
 <head>
 <title>A & Z's Grocery Order List</title>
@@ -42,20 +44,14 @@
 	    System.exit(1);
     }
 
-    // 1. Connect to server
+    //Connect to server
 
     try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 
-        // 2. query to retrieve all summary records
+        //Query to retrieve all summary records
         String orderQuery = "SELECT * FROM ordersummary";
         PreparedStatement orderStatement = connection.prepareStatement(orderQuery);
         ResultSet orderResultSet = orderStatement.executeQuery();
-
-        // 3. for each order in ResultSet
-
-        // Useful code for formatting currency values:
-        // NumberFormat currFormat = NumberFormat.getCurrencyInstance();
-        // out.println(currFormat.format(5.0));  // Prints $5.00
 
         out.println("<th>Order ID</th>");
         out.println("<th>Order Date</th>");
@@ -63,7 +59,7 @@
         out.println("<th>Customer</th>");
 
         while (orderResultSet.next()) {
-            // a. print out the order summary information
+            //Print order summary info
             int orderId = orderResultSet.getInt("orderId");
             Date orderDate = orderResultSet.getDate("orderDate");
             double totalAmount = orderResultSet.getDouble("totalAmount");
@@ -83,19 +79,18 @@
                 out.println("<td>" + NumberFormat.getCurrencyInstance().format(totalAmount) + "</td>");
                 out.println("<td>" + firstName + " " + lastName + "</td></tr>");
 
-                // b. write a query to retrieve the products in the order use a PreparedStatement as will repeat this query many times
+                //Retrieve products in the order
                 String productQuery = "SELECT * FROM orderproduct WHERE orderId = ?";
                 PreparedStatement productStatement = connection.prepareStatement(productQuery);
                 productStatement.setInt(1, orderId);
                 ResultSet productResultSet = productStatement.executeQuery();
 
-                // c. for each product in the order write out product information
                 out.println("<tr><td><table border=\"1\"><th>Product ID:</th>");
                 out.println("<th>Quantity</th>");
                 out.println("<th>Price</th>");
 
                 while (productResultSet.next()) {
-                    // Write out product information
+                    //Write out product information
                     int productId = productResultSet.getInt("productId");
                     int quantity = productResultSet.getInt("quantity");
                     double price = productResultSet.getDouble("price");
@@ -105,12 +100,12 @@
 
                 out.println("</table></td></tr>");
 
-                // close product ResultSet and Statement
+                //Close product ResultSet and Statement
                 productResultSet.close();
                 productStatement.close();
             }
 
-            // close customer ResultSet and Statement
+            //Close customer ResultSet and Statement
             customerResultSet.close();
             customerStatement.close();
         }
