@@ -1,3 +1,5 @@
+<%@ page import="java.util.Base64" %>
+<%@ page import="java.sql.*" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF8"%>
@@ -31,7 +33,7 @@ else {
 // Get product name to search for
 // TODO: Retrieve and display info for the product
 // String productId = request.getParameter("id");
-String sql = "";
+// String sql = "";
 /* TODO: Retrieve and display info for the product */
 // TODO: If there is a productImageURL, display using IMG tag
 		
@@ -45,34 +47,44 @@ try {
     try (PreparedStatement preparedStatement = con.prepareStatement(sql)){
         preparedStatement.setString(1, productId);
         ResultSet resultSet = preparedStatement.executeQuery();
+
     if (resultSet.next()){
         // Retrieve product information from resultSet
-        Product product = new Product();
-        product.setProductId(resultSet.getInt("productId"));
-        product.setProductName(resultSet.getString("productName"));
-        product.setProductDesc(resultSet.getString("productDesc"));
-        product.setProductPrice(resultSet.getDouble("productPrice"));
-        product.setProductImageURL(resultSet.getString("productImageURL"));
+        int productIdValue = resultSet.getInt("productId");
+        String productName = resultSet.getString("productName");
+        String productDesc = resultSet.getString("productDesc");
+        double productPrice = resultSet.getDouble("productPrice");
+        String productImageURL = resultSet.getString("productImageURL");
+
+        
         // Display product info
-        out.println("<h1>" + product.getProductName() + "</h1>");
-        out.println("<p>" + product.getProductDesc() + "</p>");
-        out.println("<p>Price: " + NumberFormat.getCurrencyInstance().format(product.getProductPrice()) + "</p>");
+        out.println("<h1>" + productName + "</h1>");
+        out.println("<p>" + productDesc + "</p>");
+        out.println("<p>Price: " + NumberFormat.getCurrencyInstance().format(productPrice) + "</p>");
         /* TODO: If there is a productImageURL, display using IMG tag */
-        if (product.getProductImageURL() != null && !product.getProductImageURL().isEmpty()) {
-            out.println("<img src='" + product.getProductImageURL() + "' alt='Product Image'>");
+        if (productImageURL != null && !productImageURL.isEmpty()) {
+            out.println("<img src='" + productImageURL + "' alt='Product Image'>");
         } else {
-            
-            /* TODO: Retrieve any image stored directly in database. Note: Call displayImage.jsp with product id as parameter. */
-            byte[] image = DisplayImageDAO.getImageDataById(productId);
-            if (image != null && image.length > 0){
-                String base64Image = Base64.getEncoder().encodeToString(image); // making image in base64 to be embedded in html as data 
-                out.println("<img src='data:image/png;base64, " + base64Image + "' alt='Product Image'>");  
-            } else {
-                out.println("<p>No image available, but we promise it's good!</p>");
+            /* TODO: Retrieve any image stored directly in the database. Note: Call displayImage.jsp with product id as a parameter. */
+            String sqlImage = "SELECT productImage FROM Product WHERE productId = ?";
+                try (PreparedStatement imageStatement = con.prepareStatement(sqlImage)) {
+                    imageStatement.setInt(1, productIdValue);
+                    ResultSet imageResultSet = imageStatement.executeQuery();
+
+                    if (imageResultSet.next()) {
+                        // Convert image to Base64
+                        byte[] imageData = imageResultSet.getBytes("productImage");
+                        String base64Image = Base64.getEncoder().encodeToString(imageData);
+                        String dataURL = "data:image/png;base64," + base64Image;
+                        out.println("<img src='" + dataURL + "' alt='Product Image'>");
+                    } else {
+                        out.println("<p>No image available, but we promise it's good!</p>");
+                    }
+                }
             }
-        }
+
         // TODO: Add links to Add to Cart and Continue Shopping
-        out.println("<a href='addToCart.jsp?id=" + productId + "'>Add to Cart;)</a>");
+        out.println("<a href='addToCart.jsp?id=" + productIdValue + "'>Add to Cart;)</a>");
         out.println("<a href='shopping.jsp'>Continue Shopping!</a>");
     } else {
         out.println("<p>Product not found :( sorry!</p>");
@@ -88,4 +100,3 @@ try {
 %>
 
 </body>
-
