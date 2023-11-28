@@ -47,7 +47,7 @@ else {
 
 		try (Connection connection = DriverManager.getConnection(url, uid, pw); Statement stmt = connection.createStatement();) {
 			try {
-				//Check that username is in database
+				//Check that username is in the database
 				String checkUserQuery = "SELECT userid FROM customer WHERE userid = ?";
 				PreparedStatement checkUserStatement = connection.prepareStatement(checkUserQuery);
     			checkUserStatement.setString(1, userName);
