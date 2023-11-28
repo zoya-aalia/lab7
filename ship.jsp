@@ -8,20 +8,22 @@
 <%@ include file="jdbc.jsp" %>
 
 <html>
-	<nav style="padding:1px">
-		<h1>A & Z's Grocery</h1>
-	</nav>
-	<div style="background-image: linear-gradient(to left, #769d6d, #242b99); padding:10px; ">
-			<a href="shop.html" style="margin-left:20px; color:antiquewhite">Home </a>
-			<a href="listprod.jsp" style="margin-left:20px; color:antiquewhite">Products</a>
-			<a href="listorder.jsp" style="margin-left:20px; color:antiquewhite">Orders</a>
-			<a href="showcart.jsp" style="margin-left:20px; color:antiquewhite">My Cart</a>
-	</div>
-	<style>
-			h1 {color:#1baa82;}
-			h2 {color:black;}
-			a {color:#769d6d}
-	</style>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <%@ include file="headerAcc.jsp"%>
+    <%
+}
+else {
+    %>
+    <%@ include file="header.jsp"%>
+    <%
+}
+%>
+<style>
+        h1 {color:#1baa82;}
+        h2 {color:black;}
+</style>
 <head>
 <title>A & Z's Grocery Shipment Processing</title>
 </head>
@@ -166,7 +168,18 @@
 	}
 %>                       				
 
-<h2><a href="shop.html">Back to Main Page</a></h2>
+<%
+if (session.getAttribute("authenticatedUser") != null) {
+    %>
+    <h2><a href="index.jsp">Back to Main Page</a></h2>
+    <%
+}
+else {
+    %>
+    <h2><a hrf="shop.html">Back to Main Page</a></h2>
+    <%
+}
+%>
 
 </body>
 </html>
